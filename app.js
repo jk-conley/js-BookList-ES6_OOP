@@ -12,6 +12,7 @@ const main = document.querySelector('main');
 CLASSES
 ==========*/
 
+// Book Class
 class Book {
 
   constructor(title, author, isbn) {
@@ -23,6 +24,7 @@ class Book {
 
 }
 
+// UI Class
 class UI {
 
   addBookToList(book) {
@@ -71,6 +73,60 @@ class UI {
 
 }
 
+// Local Storage Class
+class Store {
+  static getBooks() {
+    // initialize books array
+    let books;
+    // if null empty array, otherwise add books
+    if (localStorage.getItem('books') === null) {
+      books = [];
+    } else {
+      books = JSON.parse(localStorage.getItem('books'));
+    }
+
+    return books;
+  }
+
+  static displayBooks() {
+    // get books
+    const books = Store.getBooks();
+
+    // Instance of UI
+    const ui = new UI();
+
+    // display books
+    for (let book of books) {
+      ui.addBookToList(book)
+    }
+  }
+
+  static addBook(book) {
+    // get books
+    const books = Store.getBooks();
+
+    // push the book added into books
+    books.push(book);
+    // set it in local storage
+    localStorage.setItem('books', JSON.stringify(books));
+  }
+
+  static removeBook(isbn) {
+    // get books
+    const books = Store.getBooks();
+
+    // find the book and remove it
+    for (let book of books) {
+      if (book.isbn === isbn) {
+        books.splice(book, 1);
+      }
+    }
+
+    localStorage.setItem('books', JSON.stringify(books));
+  }
+}
+
+
 /*================
 FUNCTIONS
 ================*/
@@ -85,6 +141,9 @@ function validate(ui, book) {
     // add the book
     ui.addBookToList(book);
 
+    // add to local storage
+    Store.addBook(book);
+
     // show success
     ui.showAlert('Book added!', 'success');
 
@@ -96,6 +155,9 @@ function validate(ui, book) {
 /*================
 EVENT LISTENERS
 ================*/
+
+// DOM Load Event
+document.addEventListener('DOMContentLoaded', Store.displayBooks);
 
 // Listen for Submit
 bookForm.addEventListener('submit', function (e) {
@@ -118,7 +180,11 @@ list.addEventListener('click', function (e) {
   // instance of UI
   const ui = new UI();
 
+  // delete book
   ui.deleteBook(e.target);
+
+  // remove book from local storage
+  Store.removeBook(e.target.parentElement.previousElementSibling.textContent);
 
   // show alert
   ui.showAlert('Book deleted!', 'success');
